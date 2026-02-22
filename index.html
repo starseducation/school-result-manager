@@ -1,0 +1,955 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>School Result Manager</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b6b3a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+
+
+<style>
+@page { size:A4; margin:10mm; }
+body{font-family:Arial,sans-serif;background:#fff;margin:0;padding:12px;}
+.card{border:2px solid #000;border-radius:10px;padding:14px;max-width:980px;margin:auto;}
+.header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:10px;gap:10px;}
+.logo{width:80px;height:80px;object-fit:contain;border:1px solid #bbb;border-radius:8px;background:#f6f6f6;}
+.title{text-align:center;flex:1;}
+.title h2{margin:0;font-size:18px;}
+.title h3{margin:3px 0;font-size:14px;}
+.meta{font-size:12px;margin-top:4px;}
+.infoRow{display:flex;margin-top:10px;gap:10px;}
+.infoTable{width:100%;table-layout:fixed;line-height:2;}
+.label{display:inline-block;width:110px;font-weight:bold;}
+.lineInput{border:none;border-bottom:1px solid #000;width:65%;outline:none;box-sizing:border-box;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.photoPreview{width:150px;height:170px;border:1px solid #000;object-fit:cover;border-radius:8px;background:#f2f2f2;}
+
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+th,td{border:1px solid #000;padding:6px;font-size:13px;}
+th{background:#f0f0f0;}
+.failRow{background:#ffe6e6;}
+
+.summary{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px;}
+.summary .box{border:1px solid #000;border-radius:8px;padding:6px;font-size:12px;}
+.summary input{width:100%;border:none;border-bottom:1px solid #000;outline:none;font-weight:bold;}
+
+.remarksBox{margin-top:10px;border:1px solid #000;border-radius:8px;padding:8px;font-size:12px;}
+.remarksBox input{width:100%;border:none;border-bottom:1px solid #000;outline:none;font-weight:bold;}
+.signatureSpace{height:35px;}
+.footer{display:flex;justify-content:space-between;margin-top:10px;gap:10px;}
+.sign{width:45%;border-top:1px solid #000;text-align:center;padding-top:5px;font-size:12px;font-weight:bold;}
+
+.actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+button{padding:10px 12px;border:1px solid #000;background:#fff;border-radius:10px;font-weight:bold;cursor:pointer;}
+.small{font-size:12px;color:#333;text-align:center;margin-top:6px;}
+
+.panel{max-width:980px;margin:12px auto 0;border:2px solid #000;border-radius:10px;padding:10px;}
+.panel h4{margin:0 0 8px;}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.badge{display:inline-block;padding:2px 8px;border:1px solid #000;border-radius:999px;font-size:12px;font-weight:bold;}
+input[type="file"]{max-width:260px;}
+.listTable th,.listTable td{font-size:12px;}
+.listActions button{padding:6px 8px;border-radius:8px;}
+.searchBox{padding:8px;border:1px solid #999;border-radius:10px;min-width:220px;}
+
+#batchArea{display:none;}
+.batchCard{border:2px solid #000;border-radius:10px;padding:14px;page-break-after:always;}
+.batchHeader{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:10px;gap:10px;}
+.batchTitle{text-align:center;flex:1;}
+.batchTitle h2{margin:0;font-size:18px;}
+.batchTitle h3{margin:3px 0;font-size:14px;}
+.batchMeta{font-size:12px;margin-top:4px;}
+.batchInfoRow{display:flex;gap:10px;margin-top:10px;}
+.batchInfoTable{width:100%;table-layout:fixed;line-height:2;}
+.batchLabel{display:inline-block;width:110px;font-weight:bold;}
+.batchLine{border:none;border-bottom:1px solid #000;width:65%;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.batchPhoto{width:150px;height:170px;border:1px solid #000;object-fit:cover;border-radius:8px;background:#f2f2f2;}
+.batchSummary{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px;}
+.batchSummary .box{border:1px solid #000;border-radius:8px;padding:6px;font-size:12px;}
+.batchRemarks{margin-top:10px;border:1px solid #000;border-radius:8px;padding:8px;font-size:12px;font-weight:bold;}
+.batchSigSpace{height:35px;}
+.batchFooter{display:flex;justify-content:space-between;gap:10px;margin-top:10px;}
+.batchSign{width:45%;border-top:1px solid #000;text-align:center;padding-top:5px;font-size:12px;font-weight:bold;}
+
+@media print{
+  .noPrint,.panel,.actions,.small{display:none!important;}
+  #singleArea{display:none!important;}
+  #batchArea{display:block!important;}
+  th{background:#eee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .failRow{background:#ffe6e6!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+</style>
+</head>
+
+<body>
+
+<div id="singleArea">
+  <div class="card" id="singleCard">
+
+    <div class="header">
+      <div>
+        <img id="logoLeftPreview" class="logo" alt="Left Logo">
+        <div class="noPrint"><input type="file" id="logoLeftInput" accept="image/*"></div>
+      </div>
+
+      <div class="title">
+        <h2 id="schoolTitle">GOVT. PRIMARY SCHOOL</h2>
+        <div class="noPrint" style="margin-top:6px;">
+          <input id="schoolNameInput" class="searchBox" placeholder="Type School Name (all cards)" style="width:100%;max-width:460px;">
+        </div>
+        <h3>RESULT CARD</h3>
+        <div class="meta">
+          Subjects: <b>8</b> | Max: <b>800</b> | Per Subject Pass: <b>33</b><br>
+          Final Rule: <b>Overall ≥ 33%</b> AND <b>Fail Subjects ≤ 3</b>
+        </div>
+      </div>
+
+      <div>
+        <img id="logoRightPreview" class="logo" alt="Right Logo">
+        <div class="noPrint"><input type="file" id="logoRightInput" accept="image/*"></div>
+      </div>
+    </div>
+
+    <div class="infoRow">
+      <div style="flex:1;">
+        <table class="infoTable">
+          <tr>
+            <td><span class="label">Name:</span><input id="studentName" class="lineInput"></td>
+            <td><span class="label">Father Name:</span><input id="fatherName" class="lineInput"></td>
+          </tr>
+          <tr>
+            <td><span class="label">Roll No:</span><input id="rollNo" class="lineInput"></td>
+            <td><span class="label">Class:</span><input id="className" value="6" class="lineInput"></td>
+          </tr>
+          <tr>
+            <td><span class="label">Section:</span><input id="section" class="lineInput"></td>
+            <td><span class="label">Exam:</span><input id="examName" class="lineInput"></td>
+          </tr>
+          <tr>
+            <td><span class="label">Date:</span><input id="examDate" class="lineInput"></td>
+            <td></td>
+          </tr>
+        </table>
+      </div>
+
+      <div>
+        <img id="photoPreview" class="photoPreview" alt="Student Photo">
+        <div class="noPrint"><input type="file" id="photoInput" accept="image/*"></div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Subject</th><th>Obtained</th><th style="text-align:right;">Max</th><th style="text-align:right;">Status</th>
+        </tr>
+      </thead>
+      <tbody id="marksBody"></tbody>
+    </table>
+
+    <div class="summary">
+      <div class="box">Total Marks<input id="totalMarks" readonly></div>
+      <div class="box">Percentage<input id="percentage" readonly></div>
+      <div class="box">Fail Subjects<input id="failCount" readonly></div>
+      <div class="box">Grade<input id="grade" readonly></div>
+      <div class="box">Result<input id="result" readonly></div>
+    </div>
+
+    <div class="remarksBox">
+      Remarks
+      <input id="remarks" readonly>
+    </div>
+
+    <div class="signatureSpace"></div>
+
+    <div class="footer">
+      <div class="sign">Class Teacher Signature</div>
+      <div class="sign">Head Teacher Signature</div>
+    </div>
+
+  </div>
+
+  <div class="actions noPrint">
+    <button onclick="calcAll()">Calculate</button>
+    <button onclick="addOrUpdateStudent()">Add / Update Student</button>
+    <button onclick="resetStudentOnly()">Reset Current</button>
+    <button onclick="printWholeClass()">Print Whole Class</button>
+    <button onclick="clearClassList()">Clear Class List</button>
+  </div>
+
+  <div class="small noPrint">
+    <span class="badge">Saved: <b id="savedCount">0</b></span>
+    &nbsp; | &nbsp;
+    <span class="badge">Editing: <b id="editingStatus">No</b></span>
+  </div>
+</div>
+
+<div class="noPrint" style="max-width:980px;margin:10px auto 0;text-align:center;">
+  <button id="installBtn" style="display:none;">Install App</button>
+  <div class="small">Tip: On Android Chrome, you can also use Menu → “Add to Home screen”.</div>
+</div>
+
+
+<!-- ===== Class List Panel ===== -->
+<div class="panel noPrint">
+  <h4>Class List (Edit/Delete) + Ranking + Search + Import/Export + Images</h4>
+
+  <div class="row" style="justify-content:space-between;">
+    <div class="row">
+      <input type="file" id="csvInput" accept=".csv" />
+      <button onclick="importCSV()">Import CSV</button>
+      <button onclick="downloadCSVTemplate()">Template CSV</button>
+      <button onclick="exportCSV()">Export CSV</button>
+
+      <label class="badge" style="display:flex;align-items:center;gap:6px;">
+        <input type="checkbox" id="includeImagesExport">
+        Include Photos/Logos in Export
+      </label>
+    </div>
+
+    <div class="row">
+      <input id="searchInput" class="searchBox" placeholder="Search (Roll/Name/Father)..."
+             oninput="refreshClassListUI()">
+      <label class="badge" style="display:flex;align-items:center;gap:6px;">
+        Remarks
+        <select id="remarksLang" onchange="refreshClassListUI(); calcAll();">
+          <option value="en" selected>English</option>
+          <option value="ur">Urdu</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <div class="small" style="text-align:left;margin-top:6px;">
+    ⚠️ Image Export ON کرنے سے CSV بہت بڑا ہو سکتا ہے۔
+  </div>
+
+  <div style="margin-top:10px; overflow:auto;">
+    <table class="listTable" id="classListTable">
+      <thead>
+        <tr>
+          <th>Pos</th>
+          <th>Roll</th>
+          <th>Name</th>
+          <th>Father</th>
+          <th>Total</th>
+          <th>%</th>
+          <th>Fail</th>
+          <th>Grade</th>
+          <th>Result</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="classListBody">
+        <tr><td colspan="10" style="text-align:center;">No students saved yet.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== Batch Print Area ===== -->
+<div id="batchArea"></div>
+
+<script>
+/* ===== Config ===== */
+const subjects = ["Urdu","English","Mathematics","Arabi","Islamic Study","General Science","Pakistan Study","Drawing"];
+const PASS_PER_SUBJECT = 33;
+const MAX_TOTAL = 800;
+const OVERALL_PASS_PERCENT = 33;
+const ALLOWED_FAIL_SUBJECTS = 3;
+
+/* ===== State ===== */
+let classList = [];
+let editingIndex = -1;
+let logoLeftData = "", logoRightData = "", studentPhotoData = "";
+let schoolName = "GOVT. PRIMARY SCHOOL";
+
+/* ===== Build rows ===== */
+function buildRows(){
+  const body = document.getElementById("marksBody");
+  body.innerHTML = "";
+  subjects.forEach((s,i)=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${s}</td>
+      <td><input type="number" class="m" value="0" min="0" max="100" style="width:90px;text-align:right;"></td>
+      <td style="text-align:right;">100</td>
+      <td id="st${i}" style="text-align:right;">-</td>
+    `;
+    body.appendChild(tr);
+  });
+  document.querySelectorAll(".m").forEach(m => m.addEventListener("input", calcAll));
+}
+buildRows();
+
+/* ===== Helpers ===== */
+function gradeFrom(p){
+  if (p >= 80) return "A1";
+  if (p >= 70) return "A";
+  if (p >= 60) return "B";
+  if (p >= 50) return "C";
+  if (p >= 40) return "D";
+  return "E";
+}
+function finalResultByRule(overallPercent, failSubjects){
+  if (overallPercent < OVERALL_PASS_PERCENT) return "Fail";
+  if (failSubjects > ALLOWED_FAIL_SUBJECTS) return "Fail";
+  return "Pass";
+}
+function escapeHtml(str){
+  return String(str || "").replace(/[&<>"']/g, s=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[s]));
+}
+function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+function toNum(x){
+  const n = Number(String(x ?? "").trim());
+  return Number.isFinite(n) ? n : 0;
+}
+
+/* ===== Remarks generator (EN/UR) ===== */
+function makeRemarks(result, pct, failSubjects, lang){
+  const passed = result === "Pass";
+  if (lang === "ur"){
+    if (passed){
+      if (failSubjects === 0) return "تمام مضامین میں کامیاب۔";
+      return `کل فیصد ${OVERALL_PASS_PERCENT}% یا زیادہ ہونے کی وجہ سے کامیاب (فیل مضامین: ${failSubjects}، اجازت: ${ALLOWED_FAIL_SUBJECTS} تک)۔`;
+    } else {
+      if (pct < OVERALL_PASS_PERCENT) return `ناکام: کل فیصد ${OVERALL_PASS_PERCENT}% سے کم ہے۔`;
+      return `ناکام: فیل مضامین ${ALLOWED_FAIL_SUBJECTS} سے زیادہ ہیں۔`;
+    }
+  } else {
+    if (passed){
+      if (failSubjects === 0) return "Passed in all subjects.";
+      return `Passed by rule: overall ≥ ${OVERALL_PASS_PERCENT}% and failed subjects (${failSubjects}) allowed (≤ ${ALLOWED_FAIL_SUBJECTS}).`;
+    } else {
+      if (pct < OVERALL_PASS_PERCENT) return `Failed: overall percentage is below ${OVERALL_PASS_PERCENT}%.`;
+      return `Failed: failed subjects (${failSubjects}) are more than ${ALLOWED_FAIL_SUBJECTS}.`;
+    }
+  }
+}
+
+/* ===== Calculate ===== */
+function calcAll(){
+  const marksInputs = document.querySelectorAll(".m");
+  let total = 0, failSubjects = 0;
+
+  marksInputs.forEach((m,i)=>{
+    let v = clamp(Number(m.value || 0), 0, 100);
+    m.value = v;
+
+    total += v;
+
+    const row = m.closest("tr");
+    if (v < PASS_PER_SUBJECT){
+      document.getElementById("st"+i).innerText = "Fail";
+      row.classList.add("failRow");
+      failSubjects++;
+    } else {
+      document.getElementById("st"+i).innerText = "Pass";
+      row.classList.remove("failRow");
+    }
+  });
+
+  const pct = (total / MAX_TOTAL * 100);
+  const grade = gradeFrom(pct);
+  const result = finalResultByRule(pct, failSubjects);
+
+  document.getElementById("totalMarks").value = total + " / " + MAX_TOTAL;
+  document.getElementById("percentage").value = pct.toFixed(2) + "%";
+  document.getElementById("failCount").value = failSubjects + " / " + subjects.length;
+  document.getElementById("grade").value = grade;
+  document.getElementById("result").value = result;
+
+  const lang = document.getElementById("remarksLang")?.value || "en";
+  document.getElementById("remarks").value = makeRemarks(result, pct, failSubjects, lang);
+
+  return { total, pct, failSubjects, grade, result };
+}
+
+/* ===== Images ===== */
+function loadImg(inputEl, onData){
+  inputEl.addEventListener("change", ()=>{
+    const f = inputEl.files && inputEl.files[0];
+    if(!f) return;
+    const r = new FileReader();
+    r.onload = e => onData(e.target.result);
+    r.readAsDataURL(f);
+  });
+}
+loadImg(document.getElementById("logoLeftInput"), data=>{
+  logoLeftData = data;
+  document.getElementById("logoLeftPreview").src = data;
+  try{ localStorage.setItem("rc_logo_left", data); }catch(_){}
+});
+loadImg(document.getElementById("logoRightInput"), data=>{
+  logoRightData = data;
+  document.getElementById("logoRightPreview").src = data;
+  try{ localStorage.setItem("rc_logo_right", data); }catch(_){}
+});
+loadImg(document.getElementById("photoInput"), data=>{
+  studentPhotoData = data;
+  document.getElementById("photoPreview").src = data;
+});
+(function restoreLogos(){
+  try{
+    const l = localStorage.getItem("rc_logo_left") || "";
+    const r = localStorage.getItem("rc_logo_right") || "";
+    if(l){ logoLeftData = l; document.getElementById("logoLeftPreview").src = l; }
+    if(r){ logoRightData = r; document.getElementById("logoRightPreview").src = r; }
+  }catch(_){}
+})();
+
+/* ===== School name ===== */
+document.getElementById("schoolNameInput").addEventListener("input", function(){
+  schoolName = (this.value || "").trim() || "GOVT. PRIMARY SCHOOL";
+  document.getElementById("schoolTitle").innerText = schoolName;
+  try{ localStorage.setItem("rc_school_name", schoolName); }catch(_){}
+});
+(function restoreSchool(){
+  try{
+    const s = localStorage.getItem("rc_school_name") || "";
+    if(s){
+      schoolName = s;
+      document.getElementById("schoolNameInput").value = s;
+      document.getElementById("schoolTitle").innerText = s;
+    }
+  }catch(_){}
+})();
+
+/* ===== Add / Update ===== */
+function addOrUpdateStudent(){
+  const c = calcAll();
+
+  const lang = document.getElementById("remarksLang")?.value || "en";
+  const stu = {
+    schoolName,
+    roll: document.getElementById("rollNo").value.trim(),
+    name: document.getElementById("studentName").value.trim(),
+    father: document.getElementById("fatherName").value.trim(),
+    className: document.getElementById("className").value.trim(),
+    section: document.getElementById("section").value.trim(),
+    exam: document.getElementById("examName").value.trim(),
+    date: document.getElementById("examDate").value.trim(),
+    marks: Array.from(document.querySelectorAll(".m")).map(x => clamp(toNum(x.value),0,100)),
+    total: c.total,
+    pct: c.pct,
+    failSubjects: c.failSubjects,
+    grade: c.grade,
+    result: c.result,
+    remarks: makeRemarks(c.result, c.pct, c.failSubjects, lang),
+    logoLeft: logoLeftData,
+    logoRight: logoRightData,
+    photo: studentPhotoData
+  };
+
+  if(!stu.name || !stu.roll){
+    alert("Please enter at least Student Name and Roll No.");
+    return;
+  }
+
+  if (editingIndex >= 0){
+    classList[editingIndex] = stu;
+    editingIndex = -1;
+  } else {
+    classList.push(stu);
+  }
+
+  updateEditingStatus();
+  refreshClassListUI();
+  resetStudentOnly();
+}
+
+function resetStudentOnly(){
+  document.getElementById("studentName").value = "";
+  document.getElementById("fatherName").value = "";
+  document.getElementById("rollNo").value = "";
+  document.getElementById("section").value = "";
+  document.getElementById("examName").value = "";
+  document.getElementById("examDate").value = "";
+  if(!document.getElementById("className").value) document.getElementById("className").value = "6";
+
+  document.querySelectorAll(".m").forEach(m => m.value = 0);
+
+  studentPhotoData = "";
+  document.getElementById("photoPreview").removeAttribute("src");
+  document.getElementById("photoInput").value = "";
+
+  calcAll();
+}
+
+/* ===== Edit/Delete/Clear ===== */
+function editStudent(idx){
+  const stu = classList[idx];
+  editingIndex = idx;
+  updateEditingStatus();
+
+  document.getElementById("rollNo").value = stu.roll || "";
+  document.getElementById("studentName").value = stu.name || "";
+  document.getElementById("fatherName").value = stu.father || "";
+  document.getElementById("className").value = stu.className || "6";
+  document.getElementById("section").value = stu.section || "";
+  document.getElementById("examName").value = stu.exam || "";
+  document.getElementById("examDate").value = stu.date || "";
+
+  const marksInputs = document.querySelectorAll(".m");
+  marksInputs.forEach((m,i)=> m.value = clamp(toNum(stu.marks[i]),0,100));
+
+  studentPhotoData = stu.photo || "";
+  if (studentPhotoData) document.getElementById("photoPreview").src = studentPhotoData;
+  else document.getElementById("photoPreview").removeAttribute("src");
+
+  calcAll();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function deleteStudent(idx){
+  if(!confirm("Delete this student from class list?")) return;
+  classList.splice(idx,1);
+  if (editingIndex === idx) editingIndex = -1;
+  if (editingIndex > idx) editingIndex--;
+  updateEditingStatus();
+  refreshClassListUI();
+}
+
+function clearClassList(){
+  if(!confirm("Clear entire class list?")) return;
+  classList = [];
+  editingIndex = -1;
+  updateEditingStatus();
+  refreshClassListUI();
+}
+
+function updateEditingStatus(){
+  document.getElementById("savedCount").innerText = classList.length;
+  document.getElementById("editingStatus").innerText = (editingIndex>=0) ? ("Yes (Row "+(editingIndex+1)+")") : "No";
+}
+
+/* ===== Ranking ===== */
+function computePositions(sorted){
+  let lastTotal = null, lastPos = 0;
+  sorted.forEach((s,i)=>{
+    if (lastTotal === null || s.total !== lastTotal){
+      s.position = i + 1;
+      lastPos = s.position;
+      lastTotal = s.total;
+    } else {
+      s.position = lastPos; // tie
+    }
+  });
+}
+
+/* ===== Search + UI refresh ===== */
+function refreshClassListUI(){
+  document.getElementById("savedCount").innerText = classList.length;
+
+  const q = (document.getElementById("searchInput")?.value || "").trim().toLowerCase();
+  const lang = document.getElementById("remarksLang")?.value || "en";
+
+  // recalc summaries
+  classList.forEach(s=>{
+    const total = (s.marks || []).reduce((a,b)=>a+clamp(toNum(b),0,100),0);
+    const pct = (total / MAX_TOTAL * 100);
+    const failSubjects = (s.marks || []).filter(v=>clamp(toNum(v),0,100) < PASS_PER_SUBJECT).length;
+    s.total = total; s.pct = pct; s.failSubjects = failSubjects;
+    s.grade = gradeFrom(pct);
+    s.result = finalResultByRule(pct, failSubjects);
+    s.remarks = makeRemarks(s.result, pct, failSubjects, lang);
+  });
+
+  const viewAll = classList
+    .map((s, idx)=> ({...s, _idx: idx}))
+    .sort((a,b)=>{
+      if (b.total !== a.total) return b.total - a.total;
+      return String(a.roll).localeCompare(String(b.roll));
+    });
+
+  computePositions(viewAll);
+
+  const view = q ? viewAll.filter(s=>{
+    return (String(s.roll).toLowerCase().includes(q) ||
+            String(s.name).toLowerCase().includes(q) ||
+            String(s.father).toLowerCase().includes(q));
+  }) : viewAll;
+
+  const body = document.getElementById("classListBody");
+  body.innerHTML = "";
+
+  if(view.length === 0){
+    body.innerHTML = `<tr><td colspan="10" style="text-align:center;">No match found.</td></tr>`;
+    return;
+  }
+
+  view.forEach(s=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><b>${s.position}</b></td>
+      <td>${escapeHtml(s.roll)}</td>
+      <td>${escapeHtml(s.name)}</td>
+      <td>${escapeHtml(s.father)}</td>
+      <td style="text-align:right;"><b>${s.total}</b></td>
+      <td style="text-align:right;">${s.pct.toFixed(2)}%</td>
+      <td style="text-align:right;">${s.failSubjects}</td>
+      <td style="text-align:center;"><b>${escapeHtml(s.grade)}</b></td>
+      <td style="text-align:center;"><b>${escapeHtml(s.result)}</b></td>
+      <td class="listActions" style="text-align:center;">
+        <button onclick="editStudent(${s._idx})">Edit</button>
+        <button onclick="deleteStudent(${s._idx})">Delete</button>
+      </td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+/* ===== Print whole class ===== */
+function printWholeClass(){
+  if(classList.length === 0){
+    alert("No saved students. Add students first.");
+    return;
+  }
+  const lang = document.getElementById("remarksLang")?.value || "en";
+
+  const view = classList
+    .map(s=> ({...s}))
+    .sort((a,b)=>{
+      if (b.total !== a.total) return b.total - a.total;
+      return String(a.roll).localeCompare(String(b.roll));
+    });
+  computePositions(view);
+
+  const batch = document.getElementById("batchArea");
+  batch.innerHTML = "";
+
+  view.forEach(stu=>{
+    const totalText = `${stu.total} / ${MAX_TOTAL}`;
+    const pctText = `${stu.pct.toFixed(2)}%`;
+    const remarks = makeRemarks(stu.result, stu.pct, stu.failSubjects, lang);
+
+    const card = document.createElement("div");
+    card.className = "batchCard";
+    card.innerHTML = `
+      <div class="batchHeader">
+        <div style="width:120px;text-align:center;">
+          <img class="logo" src="${stu.logoLeft || logoLeftData || ""}" alt="Left Logo">
+        </div>
+
+        <div class="batchTitle">
+          <h2>${escapeHtml(stu.schoolName || schoolName)}</h2>
+          <h3>RESULT CARD</h3>
+          <div class="batchMeta">
+            Position: <b>${stu.position}</b> | Max: <b>${MAX_TOTAL}</b> | Rule: <b>Overall ≥ ${OVERALL_PASS_PERCENT}%</b> & <b>Fail ≤ ${ALLOWED_FAIL_SUBJECTS}</b>
+          </div>
+        </div>
+
+        <div style="width:120px;text-align:center;">
+          <img class="logo" src="${stu.logoRight || logoRightData || ""}" alt="Right Logo">
+        </div>
+      </div>
+
+      <div class="batchInfoRow">
+        <div style="flex:1;">
+          <table class="batchInfoTable">
+            <tr>
+              <td><span class="batchLabel">Name:</span><span class="batchLine">${escapeHtml(stu.name)}</span></td>
+              <td><span class="batchLabel">Father Name:</span><span class="batchLine">${escapeHtml(stu.father)}</span></td>
+            </tr>
+            <tr>
+              <td><span class="batchLabel">Roll No:</span><span class="batchLine">${escapeHtml(stu.roll)}</span></td>
+              <td><span class="batchLabel">Class:</span><span class="batchLine">${escapeHtml(stu.className)}</span></td>
+            </tr>
+            <tr>
+              <td><span class="batchLabel">Section:</span><span class="batchLine">${escapeHtml(stu.section)}</span></td>
+              <td><span class="batchLabel">Exam:</span><span class="batchLine">${escapeHtml(stu.exam)}</span></td>
+            </tr>
+            <tr>
+              <td><span class="batchLabel">Date:</span><span class="batchLine">${escapeHtml(stu.date)}</span></td>
+              <td></td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="width:190px;text-align:center;">
+          <img class="batchPhoto" src="${stu.photo || ""}" alt="Student Photo">
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Subject</th><th>Obtained</th><th style="text-align:right;">Max</th><th style="text-align:right;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${buildBatchMarksRows(stu.marks)}
+        </tbody>
+      </table>
+
+      <div class="batchSummary">
+        <div class="box">Total<div style="font-weight:bold;margin-top:4px;">${escapeHtml(totalText)}</div></div>
+        <div class="box">Percentage<div style="font-weight:bold;margin-top:4px;">${escapeHtml(pctText)}</div></div>
+        <div class="box">Fail Subjects<div style="font-weight:bold;margin-top:4px;">${stu.failSubjects}</div></div>
+        <div class="box">Grade<div style="font-weight:bold;margin-top:4px;">${escapeHtml(stu.grade)}</div></div>
+        <div class="box">Result<div style="font-weight:bold;margin-top:4px;">${escapeHtml(stu.result)}</div></div>
+      </div>
+
+      <div class="batchRemarks">Remarks: ${escapeHtml(remarks)}</div>
+      <div class="batchSigSpace"></div>
+
+      <div class="batchFooter">
+        <div class="batchSign">Class Teacher Signature</div>
+        <div class="batchSign">Head Teacher Signature</div>
+      </div>
+    `;
+    batch.appendChild(card);
+  });
+
+  window.print();
+}
+
+function buildBatchMarksRows(marks){
+  let html = "";
+  subjects.forEach((sub, i)=>{
+    const v = clamp(toNum((marks && marks[i]) || 0), 0, 100);
+    const status = (v >= PASS_PER_SUBJECT) ? "Pass" : "Fail";
+    const rowClass = (v >= PASS_PER_SUBJECT) ? "" : "class='failRow'";
+    html += `
+      <tr ${rowClass}>
+        <td>${sub}</td>
+        <td style="text-align:right;font-weight:bold;">${v}</td>
+        <td style="text-align:right;">100</td>
+        <td style="text-align:right;">${status}</td>
+      </tr>
+    `;
+  });
+  return html;
+}
+
+/* ===== CSV Import / Export WITH images =====
+Import supports optional columns:
+PhotoData,LogoLeftData,LogoRightData
+*/
+function importCSV(){
+  const file = document.getElementById("csvInput").files[0];
+  if(!file){ alert("Choose a CSV file first."); return; }
+
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    const text = e.target.result;
+    try{
+      const rows = parseCSV(text);
+      if(rows.length < 2){ alert("CSV seems empty."); return; }
+
+      const headers = rows[0].map(h=>h.trim());
+      const required = ["RollNo","Name","FatherName","Class","Section","Exam","Date",
+        "Urdu","English","Mathematics","Arabi","IslamicStudy","GeneralScience","PakistanStudy","Drawing"];
+
+      const missing = required.filter(r => !headers.includes(r));
+      if(missing.length){ alert("Missing columns: " + missing.join(", ")); return; }
+
+      // optional
+      const hasPhoto = headers.includes("PhotoData");
+      const hasLL = headers.includes("LogoLeftData");
+      const hasRR = headers.includes("LogoRightData");
+
+      const idx = Object.fromEntries(headers.map((h,i)=>[h,i]));
+      let added = 0;
+
+      for(let r=1; r<rows.length; r++){
+        const line = rows[r];
+        if(line.length === 1 && String(line[0]||"").trim()==="") continue;
+
+        const marks = [
+          toNum(line[idx["Urdu"]]),
+          toNum(line[idx["English"]]),
+          toNum(line[idx["Mathematics"]]),
+          toNum(line[idx["Arabi"]]),
+          toNum(line[idx["IslamicStudy"]]),
+          toNum(line[idx["GeneralScience"]]),
+          toNum(line[idx["PakistanStudy"]]),
+          toNum(line[idx["Drawing"]]),
+        ].map(v => clamp(v,0,100));
+
+        const total = marks.reduce((a,b)=>a+b,0);
+        const pct = (total / MAX_TOTAL * 100);
+        const failSubjects = marks.filter(v=>v < PASS_PER_SUBJECT).length;
+
+        // images (optional)
+        const photo = hasPhoto ? String(line[idx["PhotoData"]] ?? "").trim() : "";
+        const ll = hasLL ? String(line[idx["LogoLeftData"]] ?? "").trim() : (logoLeftData || "");
+        const rr = hasRR ? String(line[idx["LogoRightData"]] ?? "").trim() : (logoRightData || "");
+
+        classList.push({
+          schoolName,
+          roll: String(line[idx["RollNo"]] ?? "").trim(),
+          name: String(line[idx["Name"]] ?? "").trim(),
+          father: String(line[idx["FatherName"]] ?? "").trim(),
+          className: String(line[idx["Class"]] ?? "").trim() || "6",
+          section: String(line[idx["Section"]] ?? "").trim(),
+          exam: String(line[idx["Exam"]] ?? "").trim(),
+          date: String(line[idx["Date"]] ?? "").trim(),
+          marks,
+          total,
+          pct,
+          failSubjects,
+          grade: gradeFrom(pct),
+          result: finalResultByRule(pct, failSubjects),
+          remarks: "",
+          logoLeft: ll,
+          logoRight: rr,
+          photo: photo
+        });
+        added++;
+      }
+
+      document.getElementById("csvInput").value = "";
+      refreshClassListUI();
+      alert("CSV imported. Students added: " + added);
+    }catch(err){
+      alert("CSV Import error: " + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function exportCSV(){
+  if(classList.length === 0){
+    alert("No students to export.");
+    return;
+  }
+
+  const includeImages = document.getElementById("includeImagesExport").checked;
+
+  const header = [
+    "RollNo","Name","FatherName","Class","Section","Exam","Date",
+    "Urdu","English","Mathematics","Arabi","IslamicStudy","GeneralScience","PakistanStudy","Drawing",
+    "Total","Percentage","FailSubjects","Grade","Result"
+  ];
+
+  if(includeImages){
+    header.push("PhotoData","LogoLeftData","LogoRightData");
+  }
+
+  const lines = [header.join(",")];
+
+  classList.forEach(s=>{
+    const row = [
+      csvCell(s.roll),
+      csvCell(s.name),
+      csvCell(s.father),
+      csvCell(s.className),
+      csvCell(s.section),
+      csvCell(s.exam),
+      csvCell(s.date),
+      ...subjects.map((sub, i)=> csvCell(clamp(toNum(s.marks[i]),0,100))),
+      csvCell(s.total),
+      csvCell((s.pct ?? 0).toFixed(2)),
+      csvCell(s.failSubjects),
+      csvCell(s.grade),
+      csvCell(s.result)
+    ];
+
+    if(includeImages){
+      row.push(
+        csvCell(s.photo || ""),
+        csvCell(s.logoLeft || logoLeftData || ""),
+        csvCell(s.logoRight || logoRightData || "")
+      );
+    }
+
+    lines.push(row.join(","));
+  });
+
+  const blob = new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8;"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = includeImages ? "class_results_with_images.csv" : "class_results_export.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function csvCell(v){
+  const s = String(v ?? "");
+  if(/[,"\n]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
+  return s;
+}
+
+function downloadCSVTemplate(){
+  const header =
+"RollNo,Name,FatherName,Class,Section,Exam,Date,Urdu,English,Mathematics,Arabi,IslamicStudy,GeneralScience,PakistanStudy,Drawing,PhotoData,LogoLeftData,LogoRightData\n";
+  const sample =
+"1,Ali Khan,Ahmed Khan,6,A,Monthly,2026-02-17,55,61,70,40,65,58,60,75,,, \n";
+  const blob = new Blob([header + sample], {type:"text/csv;charset=utf-8;"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "result_template_with_images.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+/* CSV parser */
+function parseCSV(text){
+  const rows = [];
+  let row = [], cur = "", inQuotes = false;
+
+  for(let i=0;i<text.length;i++){
+    const ch = text[i], next = text[i+1];
+    if(ch === '"'){
+      if(inQuotes && next === '"'){ cur += '"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if(ch === ',' && !inQuotes){
+      row.push(cur); cur = "";
+    } else if((ch === '\n' || ch === '\r') && !inQuotes){
+      if(ch === '\r' && next === '\n') i++;
+      row.push(cur); rows.push(row);
+      row = []; cur = "";
+    } else {
+      cur += ch;
+    }
+  }
+  if(cur.length || row.length){ row.push(cur); rows.push(row); }
+  return rows.filter(r => r.some(c => String(c).trim() !== ""));
+}
+
+/* Init */
+function updateEditingStatus(){
+  document.getElementById("savedCount").innerText = classList.length;
+  document.getElementById("editingStatus").innerText = (editingIndex>=0) ? ("Yes (Row "+(editingIndex+1)+")") : "No";
+}
+updateEditingStatus();
+calcAll();
+refreshClassListUI();
+
+
+/* ===== PWA Install Prompt ===== */
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const b = document.getElementById('installBtn');
+  if (b) b.style.display = 'inline-block';
+});
+document.getElementById('installBtn')?.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  const b = document.getElementById('installBtn');
+  if (b) b.style.display = 'none';
+});
+
+/* ===== Service Worker ===== */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+  });
+}
+</script>
+
+</body>
+</html>
