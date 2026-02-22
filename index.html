@@ -946,7 +946,7 @@ document.getElementById('installBtn')?.addEventListener('click', async () => {
 /* ===== Service Worker ===== */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+    navigator.serviceWorker.register("./service-worker.js");catch(()=>{});
   });
 }
 </script>
