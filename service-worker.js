@@ -1,4 +1,4 @@
-const CACHE_NAME = "school-result-manager-v1";
+const CACHE_NAME = "school-result-manager-v2";
 const CORE_ASSETS = [
   "./",
   "./index.html",
