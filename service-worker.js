@@ -1,6 +1,6 @@
 /* School Result Manager - Service Worker (GitHub Pages subpath safe) */
 
-const CACHE_NAME = "school-result-manager-v8"; // <-- ہر update پر v8, v9... کر دینا
+const CACHE_NAME = "school-result-manager-v9"; // <-- ہر update پر v8, v9... کر دینا
 const CORE_ASSETS = [
   "./",
   "./index.html",
